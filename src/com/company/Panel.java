@@ -179,6 +179,7 @@ public class Panel extends JPanel {
             double sumaPromieni = size + kula.size;
             // zapobiega "sklejaniu" sie kulek
             if (odleglosc <= sumaPromieni) {
+                ObslugaPliku.zapis(x, y, size, listaKul.size());
                 if (kula.x < x) {
                     kula.x -=  2;
                     x +=  2;
