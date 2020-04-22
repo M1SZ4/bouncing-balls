@@ -1,13 +1,22 @@
 package com.company;
 
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
 
 
-public class ObslugaPliku {
+
+public class ObslugaPliku extends JPanel {
     private static int zapisCounter = 0;
     private static String dane = "";
+
+
+    public ObslugaPliku() {
+        setBackground(Color.BLACK); // kolor tla
+
+    }
 
     public static void zapis(int x, int y, int rozmiar, int iloscKul) {
         try{
@@ -31,13 +40,19 @@ public class ObslugaPliku {
             }
 
 
-        }catch(IOException e){
+        }catch(IOException e) {
             e.printStackTrace();
 
         }finally {
 
         }
-
     }
+
+
+    
+
+
+
+
 
 }

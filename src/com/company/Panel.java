@@ -15,16 +15,29 @@ public class Panel extends JPanel {
     private Timer timer;
     private final int DELAY = 16; //ms dla 32=30fps 16=60fps
 
+    JFrame frame2 = new JFrame("Zderzenia");
+
     public Panel() {
         listaKul = new ArrayList<>();
         setBackground(Color.BLACK); // kolor tla
 
+        // sledzenie myszki
         addMouseListener(new Listener());
         addMouseMotionListener(new Listener());
         addMouseWheelListener(new Listener());
 
         timer = new Timer(DELAY, new Listener());
         timer.start();
+    }
+
+    public void otowrzOkno() {
+        frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame2.getContentPane().add(new ObslugaPliku());
+        frame2.setPreferredSize(new Dimension(800,600));
+        frame2.pack();
+        frame2.setLocation(850, 0); //pozycja okna na ekranie
+        frame2.setVisible(true);
+
     }
 
     @Override
@@ -63,11 +76,16 @@ public class Panel extends JPanel {
         @Override
         public void mouseEntered(MouseEvent mouseEvent) {
             timer.start();
+
+            frame2.dispose();
         }
 
         @Override
         public void mouseExited(MouseEvent mouseEvent) {
             timer.stop();
+
+            otowrzOkno();
+
         }
 
         @Override

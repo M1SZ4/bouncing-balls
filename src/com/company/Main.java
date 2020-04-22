@@ -13,6 +13,10 @@ public class Main extends JFrame {
         frame.setPreferredSize(new Dimension(800,600));
         frame.pack();
         frame.setVisible(true);
+
+
+
+
     }
 }
 
