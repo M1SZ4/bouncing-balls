@@ -35,18 +35,17 @@ public class Panel extends JPanel {
         frame2.getContentPane().add(new ObslugaPliku());
         frame2.setPreferredSize(new Dimension(800,600));
         frame2.pack();
-        frame2.setLocation(850, 0); //pozycja okna na ekranie
+        frame2.setLocation(810, 0); //pozycja okna na ekranie
         frame2.setVisible(true);
-
+        frame2.setBackground(Color.BLACK);
     }
 
     @Override
     public void paintComponent(Graphics g){
         super.paintComponent(g);
 
-        for (Kula k : listaKul) {
+        for (Kula k : listaKul)
             k.drawVisibilityPolygon((Graphics2D) g, k.x, k.y, k.size);
-        }
 
         //licznik kul
         g.setColor(Color.YELLOW);
@@ -197,7 +196,7 @@ public class Panel extends JPanel {
             double sumaPromieni = size + kula.size;
             // zapobiega "sklejaniu" sie kulek
             if (odleglosc <= sumaPromieni) {
-                ObslugaPliku.zapis(x, y, size, listaKul.size());
+                ObslugaPliku.zapis(x, y, size, kula.x, kula.y, kula.size, listaKul.size());
                 if (kula.x < x) {
                     kula.x -=  2;
                     x +=  2;
@@ -254,5 +253,4 @@ public class Panel extends JPanel {
 
         }
     }
-
 }
