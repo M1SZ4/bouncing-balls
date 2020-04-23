@@ -11,11 +11,11 @@ import static java.lang.Math.sqrt;
 
 public class Panel extends JPanel {
     private ArrayList<Kula> listaKul;
-    private int size = 20;
+    private int promien = 20;
     private Timer timer;
     private final int DELAY = 16; //ms dla 32=30fps 16=60fps
-
     JFrame frame2 = new JFrame("Zderzenia");
+
 
     public Panel() {
         listaKul = new ArrayList<>();
@@ -29,6 +29,7 @@ public class Panel extends JPanel {
         timer = new Timer(DELAY, new Listener());
         timer.start();
     }
+
 
     public void otowrzOkno() {
         frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -44,9 +45,9 @@ public class Panel extends JPanel {
     public void paintComponent(Graphics g){
         super.paintComponent(g);
 
-        for (Kula k : listaKul)
-            k.drawVisibilityPolygon((Graphics2D) g, k.x, k.y, k.size);
-
+        for (Kula k : listaKul) {
+            k.drawVisibilityPolygon((Graphics2D) g, k.x, k.y, k.promien);
+        }
         //licznik kul
         g.setColor(Color.YELLOW);
         g.drawString(Integer.toString(listaKul.size()), 40, 40);
@@ -62,7 +63,7 @@ public class Panel extends JPanel {
 
         @Override
         public void mousePressed(MouseEvent mouseEvent) {
-            listaKul.add(new Kula(mouseEvent.getX(), mouseEvent.getY(), size));
+            listaKul.add(new Kula(mouseEvent.getX(), mouseEvent.getY(), promien));
             repaint();
 
         }
@@ -75,16 +76,13 @@ public class Panel extends JPanel {
         @Override
         public void mouseEntered(MouseEvent mouseEvent) {
             timer.start();
-
-            frame2.dispose();
+            frame2.dispose(); // zamkniecie drugiego okna
         }
 
         @Override
         public void mouseExited(MouseEvent mouseEvent) {
             timer.stop();
-
-            otowrzOkno();
-
+            otowrzOkno(); // otwarcie drugiego okna
         }
 
         @Override
@@ -102,7 +100,7 @@ public class Panel extends JPanel {
 
         @Override
         public void mouseDragged(MouseEvent mouseEvent) {
-            listaKul.add(new Kula(mouseEvent.getX(), mouseEvent.getY(), size));
+            listaKul.add(new Kula(mouseEvent.getX(), mouseEvent.getY(), promien));
             repaint();
         }
 
@@ -114,26 +112,25 @@ public class Panel extends JPanel {
         @Override
         public void mouseWheelMoved(MouseWheelEvent mouseWheelEvent) {
             if (mouseWheelEvent.getWheelRotation() < 0) {
-                size++;
+                promien++;
             }
             else {
-                if (size > 2)
-                    size--;
+                if (promien > 1)
+                    promien--;
             }
-
             repaint();
         }
     }
 
     public class Kula {
-        public int x, y, size;
+        public int x, y, promien;
         public double xspeed = 0, yspeed = 0;
         private final int MAX_SPEED = 5;
 
-        public Kula(int x, int y, int size) {
+        public Kula(int x, int y, int promien) {
             this.x = x;
             this.y = y;
-            this.size = size;
+            this.promien = promien;
             while (xspeed == 0)
                 xspeed = (int) (Math.random() * MAX_SPEED * 2 - MAX_SPEED);
 
@@ -152,20 +149,20 @@ public class Panel extends JPanel {
 //            if (y - (size / 2) <= 0 || y + size  >= getHeight())
 //                yspeed = -yspeed;
 
-            if ((x + size) >= getWidth()) {
-                x = getWidth() - size;
+            if ((x + promien) >= getWidth()) {
+                x = getWidth() - promien;
                 xspeed = -xspeed;
             }
-            if ((x - size / 2) <= 0) {
-                x = size / 2; // kulki nie blokuja sie w scianach
+            if ((x - promien / 2) <= 0) {
+                x = promien / 2; // kulki nie blokuja sie w scianach
                 xspeed = -xspeed;
             }
-            if ((y + size) >= getHeight()) {
-                y = getHeight() - size;
+            if ((y + promien) >= getHeight()) {
+                y = getHeight() - promien;
                 yspeed = -yspeed;
             }
-            if ((y - size / 2) <= 0) {
-                y = size / 2;
+            if ((y - promien / 2) <= 0) {
+                y = promien / 2;
                 yspeed = -yspeed;
             }
         }
@@ -193,10 +190,10 @@ public class Panel extends JPanel {
 
         public boolean czyKoliduje(Kula kula) {
             double odleglosc = sqrt(pow((kula.x - x), 2) + pow((kula.y - y), 2));
-            double sumaPromieni = size + kula.size;
+            double sumaPromieni = promien + kula.promien;
             // zapobiega "sklejaniu" sie kulek
             if (odleglosc <= sumaPromieni) {
-                ObslugaPliku.zapis(x, y, size, kula.x, kula.y, kula.size, listaKul.size());
+                ObslugaPliku.zapis(x, y, promien, kula.x, kula.y, kula.promien, listaKul.size());
                 if (kula.x < x) {
                     kula.x -=  2;
                     x +=  2;
@@ -225,7 +222,6 @@ public class Panel extends JPanel {
 //            kula.xspeed = -kula.xspeed;
 //            kula.yspeed = -kula.yspeed;
 
-
             int xDist = kula.x - x;
             int yDist = kula.y - y;
             double collisionAngle = Math.atan2(yDist, xDist);
@@ -241,8 +237,8 @@ public class Panel extends JPanel {
             double xSpeedBall2 = magBall2 * Math.cos(angleBall2-collisionAngle);
             double ySpeedBall2 = magBall2 * Math.sin(angleBall2-collisionAngle);
 
-            double finalxSpeedBall1 = ((kula.size - size) * xSpeedBall1 + (size + size) * xSpeedBall2) / (kula.size + size);
-            double finalxSpeedBall2 = ((kula.size + kula.size) * xSpeedBall1 + (size - kula.size)* xSpeedBall2) / (kula.size + size);
+            double finalxSpeedBall1 = ((kula.promien - promien) * xSpeedBall1 + (promien + promien) * xSpeedBall2) / (kula.promien + promien);
+            double finalxSpeedBall2 = ((kula.promien + kula.promien) * xSpeedBall1 + (promien - kula.promien)* xSpeedBall2) / (kula.promien + promien);
             double finalySpeedBall1 = ySpeedBall1;
             double finalySpeedBall2 = ySpeedBall2;
 

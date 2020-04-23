@@ -23,17 +23,19 @@ public class ObslugaPliku extends JPanel {
 
     public void paint(Graphics g) {
         g.setColor(Color.red);
-        for (Kula k : listaKul)
-            g.drawOval(k.x - k.size, k.y - k.size, k.size * 2, k.size * 2);
-
+        for (Kula k : listaKul) {
+            g.drawOval(k.x - k.promien, k.y - k.promien, k.promien * 2, k.promien * 2);
+        }
     }
 
 
     public static void zapis(int x1, int y1, int rozmiar1, int x2, int y2, int rozmiar2, int iloscKul) {
         try{
+            String x = (x1 + ", " + y1 + ", " + rozmiar1 + ", " + x2 + ", " + y2 + ", " + rozmiar2 + "\n");
+
             if (iloscKul > 10) {
                 // jezeli jest wiecej niz 10 kul, zderzenia zapisywane sa po 20
-                dane += (x1 + ", " + y1 + ", " + rozmiar1 + ", " + x2 + ", " + y2 + ", " + rozmiar2 + "\n");
+                dane += x;
                 zapisCounter++;
                 if (zapisCounter == 20) {
                     FileWriter f = new FileWriter("test.txt", true);
@@ -46,7 +48,7 @@ public class ObslugaPliku extends JPanel {
 
             else {
                 FileWriter f = new FileWriter("test.txt", true);
-                f.append(x1 + ", " + y1 + ", " + rozmiar1 + ", " + x2 + ", " + y2 + ", " + rozmiar2 + "\n");
+                f.append(x);
                 f.close();
             }
 
@@ -64,17 +66,15 @@ public class ObslugaPliku extends JPanel {
             int x1, y1, s1, x2, y2, s2;
             File file = new File("test.txt");
             Scanner scanner = new Scanner(file);
-
             while (scanner.hasNext()) {
-                String[] parts = scanner.nextLine().split(", ");
-                x1 = Integer.parseInt(parts[0]);
-                y1 = Integer.parseInt(parts[1]);
-                s1 = Integer.parseInt(parts[2]);
+                String[] liczby = scanner.nextLine().split(", ");
+                x1 = Integer.parseInt(liczby[0]);
+                y1 = Integer.parseInt(liczby[1]);
+                s1 = Integer.parseInt(liczby[2]);
 
-                x2 = Integer.parseInt(parts[3]);
-                y2 = Integer.parseInt(parts[4]);
-                s2 = Integer.parseInt(parts[5]);
-
+                x2 = Integer.parseInt(liczby[3]);
+                y2 = Integer.parseInt(liczby[4]);
+                s2 = Integer.parseInt(liczby[5]);
 
                 listaKul.add(new Kula(x1, y1, s1));
                 listaKul.add(new Kula(x2, y2, s2));
@@ -93,13 +93,12 @@ public class ObslugaPliku extends JPanel {
 
 
     private class Kula {
-        public int x, y, size;
+        public int x, y, promien;
 
-        public Kula(int x, int y, int size) {
+        public Kula(int x, int y, int promien) {
             this.x = x;
             this.y = y;
-            this.size = size;
-
+            this.promien = promien;
         }
     }
 }
