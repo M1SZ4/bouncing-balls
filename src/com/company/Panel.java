@@ -14,7 +14,6 @@ public class Panel extends JPanel {
     private int promien = 20;
     private Timer timer;
     private final int DELAY = 16; //ms dla 32=30fps 16=60fps
-    JFrame frame2 = new JFrame("Zderzenia");
 
 
     public Panel() {
@@ -30,16 +29,6 @@ public class Panel extends JPanel {
         timer.start();
     }
 
-
-    public void otowrzOkno() {
-        frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame2.getContentPane().add(new ObslugaPliku());
-        frame2.setPreferredSize(new Dimension(800,600));
-        frame2.pack();
-        frame2.setLocation(810, 0); //pozycja okna na ekranie
-        frame2.setVisible(true);
-        frame2.setBackground(Color.BLACK);
-    }
 
     @Override
     public void paintComponent(Graphics g){
@@ -76,13 +65,14 @@ public class Panel extends JPanel {
         @Override
         public void mouseEntered(MouseEvent mouseEvent) {
             timer.start();
-            frame2.dispose(); // zamkniecie drugiego okna
+            // zamkniecie drugiego okna
+            Main.zamknijOkno();
         }
 
         @Override
         public void mouseExited(MouseEvent mouseEvent) {
             timer.stop();
-            otowrzOkno(); // otwarcie drugiego okna
+            Main.otowrzOkno(); // otwarcie drugiego okna
         }
 
         @Override
