@@ -1,10 +1,16 @@
 package com.company;
 
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
@@ -102,6 +108,7 @@ public class Panel extends JPanel {
         public int x, y, promien;
         public double xspeed = 0, yspeed = 0;
         private final int MAX_SPEED = 5;
+        File zderzenie = new File("zderzenie.wav");
 
         public Kula(int x, int y, int promien) {
             this.x = x;
@@ -244,14 +251,24 @@ public class Panel extends JPanel {
                     update();
                     if (liczbaKulek >1) {
                         for (int i = 0; i < liczbaKulek-1; i++)
-                            if (czyKoliduje(listaKul.get(i)))
+                            if (czyKoliduje(listaKul.get(i))) {
                                 kolizja(listaKul.get(i));
+                                Clip clip = AudioSystem.getClip();
+                                clip.open(AudioSystem.getAudioInputStream(zderzenie));
+                                clip.start();
+                            }
                     }
                     repaint();
                     Thread.sleep(20);
                 }
             } catch (InterruptedException e) {
-                System.out.println("Watek: exception");
+                e.printStackTrace();
+            } catch (LineUnavailableException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (UnsupportedAudioFileException e) {
+                e.printStackTrace();
             }
         }
     }

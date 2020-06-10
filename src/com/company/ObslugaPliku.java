@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 
-public class ObslugaPliku extends JPanel {
+public class ObslugaPliku extends JPanel implements Runnable{
     private ArrayList<Kula> listaKul;
     private static int zapisCounter = 0;
     private static String dane = "";
@@ -17,7 +17,18 @@ public class ObslugaPliku extends JPanel {
 
     public ObslugaPliku() {
         listaKul = new ArrayList<>();
-        rysujZderzenia();
+        Thread t = new Thread(this);
+        t.start();
+    }
+
+
+    @Override
+    public void run() {
+        try {
+            rysujZderzenia();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -38,7 +49,7 @@ public class ObslugaPliku extends JPanel {
                 dane += x;
                 zapisCounter++;
                 if (zapisCounter == 20) {
-                    FileWriter f = new FileWriter("test.txt", true);
+                    FileWriter f = new FileWriter("zderzenia.txt", true);
                     f.append(dane);
                     f.close();
                     zapisCounter = 0;
@@ -47,7 +58,7 @@ public class ObslugaPliku extends JPanel {
             }
 
             else {
-                FileWriter f = new FileWriter("test.txt", true);
+                FileWriter f = new FileWriter("zderzenia.txt", true);
                 f.append(x);
                 f.close();
             }
@@ -64,7 +75,7 @@ public class ObslugaPliku extends JPanel {
     public void rysujZderzenia() {
         try{
             int x1, y1, s1, x2, y2, s2;
-            File file = new File("test.txt");
+            File file = new File("zderzenia.txt");
             Scanner scanner = new Scanner(file);
             while (scanner.hasNext()) {
                 String[] liczby = scanner.nextLine().split(", ");
@@ -84,13 +95,9 @@ public class ObslugaPliku extends JPanel {
 
         } catch(IOException e) {
             e.printStackTrace();
-
-        } finally {
-
         }
         repaint();
     }
-
 
     private class Kula {
         public int x, y, promien;
