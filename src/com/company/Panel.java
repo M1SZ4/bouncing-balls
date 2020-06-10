@@ -12,9 +12,7 @@ import static java.lang.Math.sqrt;
 public class Panel extends JPanel {
     private ArrayList<Kula> listaKul;
     private int promien = 20;
-    private Timer timer;
-    private final int DELAY = 16; //ms dla 32=30fps 16=60fps
-
+    public boolean petla = true;
 
     public Panel() {
         listaKul = new ArrayList<>();
@@ -24,11 +22,7 @@ public class Panel extends JPanel {
         addMouseListener(new Listener());
         addMouseMotionListener(new Listener());
         addMouseWheelListener(new Listener());
-
-        timer = new Timer(DELAY, new Listener());
-        timer.start();
     }
-
 
     @Override
     public void paintComponent(Graphics g){
@@ -41,7 +35,6 @@ public class Panel extends JPanel {
         g.setColor(Color.YELLOW);
         g.drawString(Integer.toString(listaKul.size()), 40, 40);
     }
-
 
     private class Listener implements MouseListener, MouseMotionListener, MouseWheelListener, ActionListener {
 
@@ -64,28 +57,21 @@ public class Panel extends JPanel {
 
         @Override
         public void mouseEntered(MouseEvent mouseEvent) {
-            timer.start();
+            petla = true;
             // zamkniecie drugiego okna
             Main.zamknijOkno();
         }
 
         @Override
         public void mouseExited(MouseEvent mouseEvent) {
-            timer.stop();
-            Main.otowrzOkno(); // otwarcie drugiego okna
+            petla = false;
+            // otwarcie drugiego okna
+            Main.otowrzOkno();
         }
 
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
 
-            for (int i = 0; i < listaKul.size(); i++) {
-                listaKul.get(i).update();
-                for (int j = i + 1; j < listaKul.size(); j++) {
-                    if (listaKul.get(i).czyKoliduje(listaKul.get(j)))
-                        listaKul.get(i).kolizja(listaKul.get(j));;
-                }
-                repaint();
-            }
         }
 
         @Override
@@ -112,7 +98,7 @@ public class Panel extends JPanel {
         }
     }
 
-    public class Kula {
+    public class Kula implements Runnable{
         public int x, y, promien;
         public double xspeed = 0, yspeed = 0;
         private final int MAX_SPEED = 5;
@@ -126,34 +112,41 @@ public class Panel extends JPanel {
 
             while (yspeed == 0)
                 yspeed = (int) (Math.random() * MAX_SPEED * 2 - MAX_SPEED);
+
+            Thread t = new Thread(this);
+            t.start();
         }
 
         public void update() {
-            x += xspeed;
-            y += yspeed;
+            // if jest po to aby zatrzymywac i wznawiac klulki po wyjechaniu myszka za okno
+            if (petla) {
+                x += xspeed;
+                y += yspeed;
 
-            // dobicia od scian
+                // dobicia od scian
 //            if (x - (size / 2) <= 0 || x + size  >= getWidth())
 //                xspeed = -xspeed;
 //
 //            if (y - (size / 2) <= 0 || y + size  >= getHeight())
 //                yspeed = -yspeed;
 
-            if ((x + promien) >= getWidth()) {
-                x = getWidth() - promien;
-                xspeed = -xspeed;
-            }
-            if ((x - promien / 2) <= 0) {
-                x = promien / 2; // kulki nie blokuja sie w scianach
-                xspeed = -xspeed;
-            }
-            if ((y + promien) >= getHeight()) {
-                y = getHeight() - promien;
-                yspeed = -yspeed;
-            }
-            if ((y - promien / 2) <= 0) {
-                y = promien / 2;
-                yspeed = -yspeed;
+//                "ulepszone" odbicia od scian
+                if ((x + promien) >= getWidth()) {
+                    x = getWidth() - promien;
+                    xspeed = -xspeed;
+                }
+                if ((x - promien / 2) <= 0) {
+                    x = promien / 2; // kulki nie blokuja sie w scianach
+                    xspeed = -xspeed;
+                }
+                if ((y + promien) >= getHeight()) {
+                    y = getHeight() - promien;
+                    yspeed = -yspeed;
+                }
+                if ((y - promien / 2) <= 0) {
+                    y = promien / 2;
+                    yspeed = -yspeed;
+                }
             }
         }
 
@@ -183,6 +176,7 @@ public class Panel extends JPanel {
             double sumaPromieni = promien + kula.promien;
             // zapobiega "sklejaniu" sie kulek
             if (odleglosc <= sumaPromieni) {
+                //zapis do pliku
                 ObslugaPliku.zapis(x, y, promien, kula.x, kula.y, kula.promien, listaKul.size());
                 if (kula.x < x) {
                     kula.x -=  2;
@@ -206,12 +200,15 @@ public class Panel extends JPanel {
         }
 
         public void kolizja(Kula kula) {
+//            "Standardowe" zderzenia
 //            xspeed = -xspeed;
 //            yspeed = -yspeed;
 //
 //            kula.xspeed = -kula.xspeed;
 //            kula.yspeed = -kula.yspeed;
 
+//            Bardziej realistyczne zderzenia, korzystalem z tej strony:
+//            https://code.tutsplus.com/tutorials/playing-around-with-elastic-collisions--active-7472?fbclid=IwAR3v_1DS286xowVLw67t-qALgNvBAYwy5p-0Nvo8Iqn_oJ4htLkAfOyh_xo
             int xDist = kula.x - x;
             int yDist = kula.y - y;
             double collisionAngle = Math.atan2(yDist, xDist);
@@ -237,6 +234,25 @@ public class Panel extends JPanel {
             xspeed = Math.cos(collisionAngle)*finalxSpeedBall2+Math.cos(collisionAngle+Math.PI/2)*finalySpeedBall2;
             yspeed = Math.sin(collisionAngle)*finalxSpeedBall2+Math.sin(collisionAngle+Math.PI/2)*finalySpeedBall2;
 
+        }
+
+        @Override
+        public void run() {
+            int liczbaKulek = listaKul.size();
+            try {
+                while (true) {
+                    update();
+                    if (liczbaKulek >1) {
+                        for (int i = 0; i < liczbaKulek-1; i++)
+                            if (czyKoliduje(listaKul.get(i)))
+                                kolizja(listaKul.get(i));
+                    }
+                    repaint();
+                    Thread.sleep(20);
+                }
+            } catch (InterruptedException e) {
+                System.out.println("Watek: exception");
+            }
         }
     }
 }
