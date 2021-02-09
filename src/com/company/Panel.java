@@ -16,15 +16,17 @@ import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
 public class Panel extends JPanel {
-    private ArrayList<Kula> listaKul;
-    private int promien = 20;
-    public boolean petla = true;
+//    stores information (x, y, radius) about each ball in the window
+    private ArrayList<Ball> ballsList;
+//    default ball radius
+    private int radius = 20;
+//    variable used to stop the balls movement when the second window is displayed
+    public boolean loop = true;
 
     public Panel() {
-        listaKul = new ArrayList<>();
-        setBackground(Color.BLACK); // kolor tla
+        ballsList = new ArrayList<>();
+        setBackground(Color.BLACK);
 
-        // sledzenie myszki
         addMouseListener(new Listener());
         addMouseMotionListener(new Listener());
         addMouseWheelListener(new Listener());
@@ -32,18 +34,17 @@ public class Panel extends JPanel {
 
     @Override
     public void paintComponent(Graphics g){
+//        draw ball on the screen
         super.paintComponent(g);
-
-        for (Kula k : listaKul) {
-            k.drawVisibilityPolygon((Graphics2D) g, k.x, k.y, k.promien);
+        for (Ball b : ballsList) {
+            b.drawVisibilityPolygon((Graphics2D) g, b.x, b.y, b.ballRadius);
         }
-        //licznik kul
+//        show balls counter
         g.setColor(Color.YELLOW);
-        g.drawString(Integer.toString(listaKul.size()), 40, 40);
+        g.drawString(Integer.toString(ballsList.size()), 40, 40);
     }
 
     private class Listener implements MouseListener, MouseMotionListener, MouseWheelListener, ActionListener {
-
         @Override
         public void mouseClicked(MouseEvent mouseEvent) {
 
@@ -51,7 +52,8 @@ public class Panel extends JPanel {
 
         @Override
         public void mousePressed(MouseEvent mouseEvent) {
-            listaKul.add(new Kula(mouseEvent.getX(), mouseEvent.getY(), promien));
+//            when the mouse button is pressed, add a new ball
+            ballsList.add(new Ball(mouseEvent.getX(), mouseEvent.getY(), radius));
             repaint();
 
         }
@@ -63,16 +65,16 @@ public class Panel extends JPanel {
 
         @Override
         public void mouseEntered(MouseEvent mouseEvent) {
-            petla = true;
-            // zamkniecie drugiego okna
-            Main.zamknijOkno();
+//            when the cursor returns to the first window, unpause the balls movement and close the second window
+            loop = true;
+            Main.closeWindow();
         }
 
         @Override
         public void mouseExited(MouseEvent mouseEvent) {
-            petla = false;
-            // otwarcie drugiego okna
-            Main.otowrzOkno();
+//            when the cursor moves out of the first window, pause the balls movement and open window with collisions
+            loop = false;
+            Main.openWindow();
         }
 
         @Override
@@ -82,7 +84,8 @@ public class Panel extends JPanel {
 
         @Override
         public void mouseDragged(MouseEvent mouseEvent) {
-            listaKul.add(new Kula(mouseEvent.getX(), mouseEvent.getY(), promien));
+//            when the mouse button is pressed, add multiple balls
+            ballsList.add(new Ball(mouseEvent.getX(), mouseEvent.getY(), radius));
             repaint();
         }
 
@@ -93,84 +96,84 @@ public class Panel extends JPanel {
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent mouseWheelEvent) {
+//            moving the scroll upwards increases the radius of the ball and downwards decreases
             if (mouseWheelEvent.getWheelRotation() < 0) {
-                promien++;
+                radius++;
             }
             else {
-                if (promien > 1)
-                    promien--;
+                if (radius > 1)
+                    radius--;
             }
             repaint();
         }
     }
 
-    public class Kula implements Runnable{
-        public int x, y, promien;
-        public double xspeed = 0, yspeed = 0;
-        private final int MAX_SPEED = 5;
-        File zderzenie = new File("zderzenie.wav");
+    public class Ball implements Runnable {
+//        single ball configuration
+        public int x, y, ballRadius, MAX_SPEED = 5;
+        public double xSpeed = 0, ySpeed = 0;
 
-        public Kula(int x, int y, int promien) {
+//        sound of collision
+        File collisionSound = new File("zderzenie.wav");
+
+        public Ball(int x, int y, int ballRadius) {
+//            create new ball, give it random speed
             this.x = x;
             this.y = y;
-            this.promien = promien;
-            while (xspeed == 0)
-                xspeed = (int) (Math.random() * MAX_SPEED * 2 - MAX_SPEED);
+            this.ballRadius = ballRadius;
+            while (xSpeed == 0)
+                xSpeed = (int) (Math.random() * MAX_SPEED * 2 - MAX_SPEED);
 
-            while (yspeed == 0)
-                yspeed = (int) (Math.random() * MAX_SPEED * 2 - MAX_SPEED);
+            while (ySpeed == 0)
+                ySpeed = (int) (Math.random() * MAX_SPEED * 2 - MAX_SPEED);
 
+//            create new thread and start it
             Thread t = new Thread(this);
             t.start();
         }
 
         public void update() {
-            // if jest po to aby zatrzymywac i wznawiac klulki po wyjechaniu myszka za okno
-            if (petla) {
-                x += xspeed;
-                y += yspeed;
+//            variable "loop" controls the pause of the game
+            if (loop) {
+//                give the ball a speed
+                x += xSpeed;
+                y += ySpeed;
 
-                // dobicia od scian
-//            if (x - (size / 2) <= 0 || x + size  >= getWidth())
-//                xspeed = -xspeed;
-//
-//            if (y - (size / 2) <= 0 || y + size  >= getHeight())
-//                yspeed = -yspeed;
-
-//                "ulepszone" odbicia od scian
-                if ((x + promien) >= getWidth()) {
-                    x = getWidth() - promien;
-                    xspeed = -xspeed;
+//                reflections from walls
+                if ((x + ballRadius) >= getWidth()) {
+                    x = getWidth() - ballRadius;
+                    xSpeed = -xSpeed;
                 }
-                if ((x - promien / 2) <= 0) {
-                    x = promien / 2; // kulki nie blokuja sie w scianach
-                    xspeed = -xspeed;
+                if ((x - ballRadius / 2) <= 0) {
+                    x = ballRadius / 2;
+                    xSpeed = -xSpeed;
                 }
-                if ((y + promien) >= getHeight()) {
-                    y = getHeight() - promien;
-                    yspeed = -yspeed;
+                if ((y + ballRadius) >= getHeight()) {
+                    y = getHeight() - ballRadius;
+                    ySpeed = -ySpeed;
                 }
-                if ((y - promien / 2) <= 0) {
-                    y = promien / 2;
-                    yspeed = -yspeed;
+                if ((y - ballRadius / 2) <= 0) {
+                    y = ballRadius / 2;
+                    ySpeed = -ySpeed;
                 }
             }
         }
 
         private void drawVisibilityPolygon(Graphics2D g2d, int x, int y, float radius) {
-            Point center = new Point(x, y); // srodek kuli
-            float[] dist = {0.0f, 0.9f}; // rozmiar gradientu
+//            draw ball on the screen with fade effect
+            Point center = new Point(x, y);
+            float[] dist = {0.0f, 0.9f}; // fade size
             Color[] colors = {
-                    new Color(255, 255, 255, 255), // kolor gradientu
-                    new Color(11, 55, 131, 255) // kolor kuli
+                    new Color(255, 255, 255, 255), // fade color
+                    new Color(11, 55, 131, 255) // ball color
             };
             drawGradientCircle(g2d, radius, dist, colors, center);
         }
 
         private void drawGradientCircle(Graphics2D g2d, float radius, float[] dist, Color[] colors, Point2D center) {
+//            position of the gradient on the ball
             RadialGradientPaint rgp = new RadialGradientPaint(center, radius, dist, colors);
             g2d.setPaint(rgp);
-            // umieszczenie gradientu na kuli
             g2d.fill(new Ellipse2D.Double(
                     center.getX() - (radius / 1.5),
                     center.getY() - (radius / 1.5),
@@ -178,96 +181,68 @@ public class Panel extends JPanel {
             );
         }
 
-        public boolean czyKoliduje(Kula kula) {
-            double odleglosc = sqrt(pow((kula.x - x), 2) + pow((kula.y - y), 2));
-            double sumaPromieni = promien + kula.promien;
-            // zapobiega "sklejaniu" sie kulek
-            if (odleglosc <= sumaPromieni) {
-                //zapis do pliku
-                ObslugaPliku.zapis(x, y, promien, kula.x, kula.y, kula.promien, listaKul.size());
-                if (kula.x < x) {
-                    kula.x -=  2;
+        public boolean isCollide(Ball ball) {
+//            check if there is a collision between two balls
+            double distance = sqrt(pow((ball.x - x), 2) + pow((ball.y - y), 2));
+            double radiusSum = ballRadius + ball.ballRadius;
+//            if there is a collision
+            if (distance <= radiusSum) {
+//                save balls size and coordinates to file
+                CollisionView.saveToFile(x, y, ballRadius, ball.x, ball.y, ball.ballRadius, ballsList.size());
+
+//                prevents the balls from sticking together
+                if (ball.x < x) {
+                    ball.x -=  2;
                     x +=  2;
                 }
                 else {
-                    kula.x +=  2;
+                    ball.x +=  2;
                     x -=  2;
                 }
 
-                if (kula.y < y) {
-                    kula.y -=  2;
+                if (ball.y < y) {
+                    ball.y -=  2;
                     y +=  2;
                 }
                 else {
-                    kula.y +=  2;
+                    ball.y +=  2;
                     y -=  2;
                 }
             }
-            return odleglosc <= sumaPromieni;
+            return distance <= radiusSum;
         }
 
-        public void kolizja(Kula kula) {
-//            "Standardowe" zderzenia
-//            xspeed = -xspeed;
-//            yspeed = -yspeed;
-//
-//            kula.xspeed = -kula.xspeed;
-//            kula.yspeed = -kula.yspeed;
+        public void collision(Ball ball) {
+//            collision of two balls, changes their directions
+            xSpeed = -xSpeed;
+            ySpeed = -ySpeed;
 
-//            Bardziej realistyczne zderzenia, korzystalem z tej strony:
-//            https://code.tutsplus.com/tutorials/playing-around-with-elastic-collisions--active-7472?fbclid=IwAR3v_1DS286xowVLw67t-qALgNvBAYwy5p-0Nvo8Iqn_oJ4htLkAfOyh_xo
-            int xDist = kula.x - x;
-            int yDist = kula.y - y;
-            double collisionAngle = Math.atan2(yDist, xDist);
-
-            double magBall1 = Math.sqrt(kula.xspeed * kula.xspeed + kula.yspeed * kula.yspeed);
-            double magBall2 = Math.sqrt(xspeed * xspeed + yspeed * yspeed);
-
-            double angleBall1 = Math.atan2(kula.yspeed, kula.xspeed);
-            double angleBall2 = Math.atan2(yspeed, xspeed);
-
-            double xSpeedBall1 = magBall1 * Math.cos(angleBall1-collisionAngle);
-            double ySpeedBall1 = magBall1 * Math.sin(angleBall1-collisionAngle);
-            double xSpeedBall2 = magBall2 * Math.cos(angleBall2-collisionAngle);
-            double ySpeedBall2 = magBall2 * Math.sin(angleBall2-collisionAngle);
-
-            double finalxSpeedBall1 = ((kula.promien - promien) * xSpeedBall1 + (promien + promien) * xSpeedBall2) / (kula.promien + promien);
-            double finalxSpeedBall2 = ((kula.promien + kula.promien) * xSpeedBall1 + (promien - kula.promien)* xSpeedBall2) / (kula.promien + promien);
-            double finalySpeedBall1 = ySpeedBall1;
-            double finalySpeedBall2 = ySpeedBall2;
-
-            kula.xspeed = Math.cos(collisionAngle)*finalxSpeedBall1+Math.cos(collisionAngle+Math.PI/2)*finalySpeedBall1;
-            kula.yspeed = Math.sin(collisionAngle)*finalxSpeedBall1+Math.sin(collisionAngle+Math.PI/2)*finalySpeedBall1;
-            xspeed = Math.cos(collisionAngle)*finalxSpeedBall2+Math.cos(collisionAngle+Math.PI/2)*finalySpeedBall2;
-            yspeed = Math.sin(collisionAngle)*finalxSpeedBall2+Math.sin(collisionAngle+Math.PI/2)*finalySpeedBall2;
+            ball.xSpeed = -ball.xSpeed;
+            ball.ySpeed = -ball.ySpeed;
 
         }
 
         @Override
         public void run() {
-            int liczbaKulek = listaKul.size();
+//            move each ball and check for collisions
+            int ballCount = ballsList.size();
             try {
                 while (true) {
                     update();
-                    if (liczbaKulek >1) {
-                        for (int i = 0; i < liczbaKulek-1; i++)
-                            if (czyKoliduje(listaKul.get(i))) {
-                                kolizja(listaKul.get(i));
+                    if (ballCount >1) {
+                        for (int i = 0; i < ballCount-1; i++)
+                            if (isCollide(ballsList.get(i))) {
+                                collision(ballsList.get(i));
+//                                play sound of collision
                                 Clip clip = AudioSystem.getClip();
-                                clip.open(AudioSystem.getAudioInputStream(zderzenie));
+                                clip.open(AudioSystem.getAudioInputStream(collisionSound));
                                 clip.start();
                             }
                     }
                     repaint();
                     Thread.sleep(20);
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (LineUnavailableException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (UnsupportedAudioFileException e) {
+            } catch (InterruptedException | LineUnavailableException | IOException | UnsupportedAudioFileException e) {
                 e.printStackTrace();
             }
         }
