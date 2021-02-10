@@ -43,7 +43,7 @@ public class CollisionView extends JPanel implements Runnable {
 
 
     public static void saveToFile(int x1, int y1, int size1, int x2, int y2, int size2, int ballsCount) {
-//        save information about each collision in a file 'zderzenia.txt' (ball1 and ball2 coordinates and size)
+//        save information about each collision in a file 'collisions.txt' (ball1 and ball2 coordinates and size)
         try{
             String x = (x1 + ", " + y1 + ", " + size1 + ", " + x2 + ", " + y2 + ", " + size2 + "\n");
 
@@ -52,7 +52,7 @@ public class CollisionView extends JPanel implements Runnable {
                 dataToSave += x;
                 saveCounter++;
                 if (saveCounter == 20) {
-                    FileWriter f = new FileWriter("zderzenia.txt", true);
+                    FileWriter f = new FileWriter("collisions.txt", true);
                     f.append(dataToSave);
                     f.close();
                     saveCounter = 0;
@@ -61,7 +61,7 @@ public class CollisionView extends JPanel implements Runnable {
             }
 
             else {
-                FileWriter f = new FileWriter("zderzenia.txt", true);
+                FileWriter f = new FileWriter("collisions.txt", true);
                 f.append(x);
                 f.close();
             }
@@ -75,9 +75,11 @@ public class CollisionView extends JPanel implements Runnable {
 
     public void readCollisionsCoords() {
 //        read information about each ball from file and save it in 'ballsList' array
+        File file = new File("collisions.txt");
+        if (file.exists() && !file.isDirectory()) {
             try {
                 int x1, y1, s1, x2, y2, s2;
-                File file = new File("zderzenia.txt");
+
                 Scanner scanner = new Scanner(file);
                 while (scanner.hasNext()) {
                     String[] coordinates = scanner.nextLine().split(", ");
@@ -99,6 +101,7 @@ public class CollisionView extends JPanel implements Runnable {
                 e.printStackTrace();
             }
             repaint();
+        }
     }
 
     private class Ball {

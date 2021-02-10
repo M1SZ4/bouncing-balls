@@ -114,7 +114,7 @@ public class Panel extends JPanel {
         public double xSpeed = 0, ySpeed = 0;
 
 //        sound of collision
-        File collisionSound = new File("zderzenie.wav");
+        File collisionSound = new File("collision_sound.wav");
 
         public Ball(int x, int y, int ballRadius) {
 //            create new ball, give it random speed

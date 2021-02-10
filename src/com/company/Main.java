@@ -4,11 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 
 public class Main extends JFrame {
-    private static JFrame frame2 = new JFrame("Zderzenia");
+    private static JFrame frame2 = new JFrame("Collisions");
 
 //    configuration of the window in which the balls move, it open automatically when the program starts
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Kuleczki");
+        JFrame frame = new JFrame("Bouncing balls");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(new Panel());
         frame.setPreferredSize(new Dimension(800,600));
